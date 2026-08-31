@@ -1,0 +1,174 @@
+① users (사용자) - 계정 로그인 및 권한 관리용 테이블입니다.
+	user_id (PK, 고유 숫자 ID)
+	username (로그인 아이디, 중복 불가)
+	password_hash (암호화된 비밀번호)
+	role (역할: ADMIN / USER)
+	is_active (상태: 활성/비활성)
+	last_login_at (마지막 활동/로그인 시간)
+
+② projects (프로젝트) - 분석 대상 프로젝트 정보입니다.
+	project_id (PK, 고유 숫자 ID)
+	name (프로젝트 이름, 중복 불가)
+	description (설명)
+	source_type (소스 유형: UPLOAD / GIT / PATH)
+	target_language (대상 언어: JAVA, PYTHON, JAVASCRIPT 등)
+	source_location (저장소 위치/경로)
+	created_by (FK -> users.user_id, 생성자 ID)
+	created_at, updated_at (생성 및 수정 시간)
+
+③ project_members (프로젝트 접근 권한) - 어떤 프로젝트에 접근할 수 있는지 (N:M)
+	project_id (FK -> projects.project_id)
+	user_id (FK -> users.user_id)
+	granted_at (권한 부여 시각)
+	(PK는 project_id + user_id 복합 키)
+
+④ rules (KISA 49개 진단 기준) - SAST이 탐지할 보안 약점 기준 테이블
+	rule_id (PK, 고유 숫자 ID)
+	rule_code (진단 항목 식별자, 예: KISA-JAVA-01, CWE-89)
+	name (진단 항목 명칭)
+	description (설명)
+	category (유형 분류, 예: 입력 데이터 검증 및 표현)
+	kisa_num (KISA 49개 지침 항목 번호, 예: 1~49)
+	refere	nce_info (참조 정보/URL)
+	default_severity (기본 심각도: HIGH / MEDIUM / LOW)
+	is_active (진단 활성 여부: TRUE / FALSE)
+
+⑤ analysis_runs (분석 실행 데이터) - 분석 할 때마다 생성되는 실행 이력
+	run_id (PK, 고유 숫자 ID)
+	project_id (FK -> projects.project_id, 대상 프로젝트)
+	executed_by (FK -> users.user_id, 실행한 사람)
+	analysis_mode (분석 방식: REGEX / AST)
+	language (분석 언어)
+	status (실행 상태: PENDING / RUNNING / COMPLETED / FAILED)
+	error_message (실패 시 오류 정보)
+	summary_json (실행 요약: 총 발견 건수, 심각도별 개수 등)
+	started_at, ended_at (시작 및 종료 시간)
+
+⑥ findings (진단 결과 데이터) - 분석(Run)에서 실제로 발견된 취약점 코드 정보
+	finding_id (PK, 고유 숫자 ID)
+	run_id (FK -> analysis_runs.run_id, 어떤 분석 실행 건인지)
+	rule_id (FK -> rules.rule_id, 어떤 룰에 걸렸는지)
+	file_path (취약점 발견 파일 위치)
+	line_number (줄 번호)
+	code_snippet (근거 / 문제의 코드 조각)
+	message (진단 메시지)
+	recommendation (조치 권고)
+	severity_snapshot (진단 당시 스냅샷 심각도)
+	rule_name_snapshot (진단 당시 스냅샷 룰 명칭)
+
+
+DB 구성
+-- ========================================================
+-- 1. 사용자 (Users) 테이블
+-- ========================================================
+CREATE TABLE users (
+    user_id       BIGINT AUTO_INCREMENT PRIMARY KEY,
+    username      VARCHAR(50)  NOT NULL UNIQUE, -- 로그인 식별자 (중복 불가)
+    password_hash VARCHAR(255) NOT NULL,        -- 단방향 암호화된 비밀번호
+    role          VARCHAR(20)  NOT NULL,        -- 역할 (ADMIN, USER)
+    is_active     BOOLEAN      NOT NULL DEFAULT TRUE, -- 활성 상태
+    last_login_at TIMESTAMP,                    -- 마지막 활동 시간
+    created_at    TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at    TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- ========================================================
+-- 2. 프로젝트 (Projects) 테이블
+-- ========================================================
+CREATE TABLE projects (
+    project_id      BIGINT AUTO_INCREMENT PRIMARY KEY,
+    name            VARCHAR(100) NOT NULL UNIQUE, -- 프로젝트 이름 (중복 불가)
+    description     TEXT,
+    source_type     VARCHAR(20)  NOT NULL, -- 소스 유형 (UPLOAD, GIT, PATH)
+    target_language VARCHAR(30)  NOT NULL, -- 대상 언어 (JAVA, PYTHON, JAVASCRIPT 등)
+    source_location VARCHAR(255) NOT NULL, -- 저장소 위치 및 파일 경로
+    created_by      BIGINT       NOT NULL, -- 생성자 (Users 테이블 참조)
+    created_at      TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at      TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    
+    CONSTRAINT fk_projects_created_by FOREIGN KEY (created_by) REFERENCES users(user_id)
+);
+
+-- ========================================================
+-- 3. 프로젝트 접근 권한 (Project_Members) 테이블
+-- ========================================================
+CREATE TABLE project_members (
+    project_id BIGINT    NOT NULL,
+    user_id    BIGINT    NOT NULL,
+    granted_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    
+    PRIMARY KEY (project_id, user_id), -- 복합 PK
+    CONSTRAINT fk_pm_project FOREIGN KEY (project_id) REFERENCES projects(project_id) ON DELETE CASCADE,
+    CONSTRAINT fk_pm_user    FOREIGN KEY (user_id)    REFERENCES users(user_id)    ON DELETE CASCADE
+);
+
+-- ========================================================
+-- 4. 진단 기준 (Rules - KISA 49개 지침 등) 테이블
+-- ========================================================
+CREATE TABLE rules (
+    rule_id          BIGINT AUTO_INCREMENT PRIMARY KEY,
+    rule_code        VARCHAR(50)  NOT NULL UNIQUE, -- 진단 항목 식별자 (예: KISA-JAVA-01, CWE-89)
+    name             VARCHAR(100) NOT NULL,        -- 진단 항목 명칭
+    description      TEXT,                         -- 설명
+    category         VARCHAR(100) NOT NULL,        -- 유형 분류
+    kisa_num         INT,                          -- KISA 49개 지침 항목 번호 (1~49)
+    reference_info   TEXT,                         -- 참조 정보 (URL 등)
+    default_severity VARCHAR(20)  NOT NULL,        -- 기본 심각도 (HIGH, MEDIUM, LOW)
+    is_active        BOOLEAN      NOT NULL DEFAULT TRUE, -- 진단 활성 여부
+    created_at       TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at       TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- ========================================================
+-- 5. 분석 실행 데이터 (Analysis_Runs) 테이블
+-- ========================================================
+CREATE TABLE analysis_runs (
+    run_id        BIGINT AUTO_INCREMENT PRIMARY KEY,
+    project_id    BIGINT      NOT NULL, -- 대상 프로젝트
+    executed_by   BIGINT      NOT NULL, -- 실행한 사람
+    analysis_mode VARCHAR(30) NOT NULL, -- 분석 방식 (REGEX, AST 등)
+    language      VARCHAR(30) NOT NULL, -- 분석 수행 언어
+    status        VARCHAR(20) NOT NULL, -- 실행 상태 (PENDING, RUNNING, COMPLETED, FAILED)
+    error_message TEXT,                 -- 실패 시 오류 정보
+    summary_json  TEXT,                 -- 실행 요약 (총 탐지 수, 심각도별 개수 등)
+    started_at    TIMESTAMP   NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    ended_at      TIMESTAMP,            -- 마친 시각
+    
+    CONSTRAINT fk_runs_project  FOREIGN KEY (project_id)  REFERENCES projects(project_id) ON DELETE CASCADE,
+    CONSTRAINT fk_runs_executed FOREIGN KEY (executed_by) REFERENCES users(user_id)
+);
+
+-- ========================================================
+-- 6. 진단 결과 데이터 (Findings) 테이블
+-- ========================================================
+CREATE TABLE findings (
+    finding_id         BIGINT AUTO_INCREMENT PRIMARY KEY,
+    run_id             BIGINT       NOT NULL, -- 어떤 분석 실행 건인지
+    rule_id            BIGINT,                -- 어떤 룰에 걸렸는지 (삭제 시 NULL 허용)
+    file_path          VARCHAR(500) NOT NULL, -- 취약점 발견 파일 위치
+    line_number        INT          NOT NULL, -- 줄 번호
+    code_snippet       TEXT,                  -- 근거 / 문제의 소스코드 조각
+    message            TEXT         NOT NULL, -- 진단 메세지
+    recommendation     TEXT,                  -- 조치 권고 내용
+    severity_snapshot  VARCHAR(20)  NOT NULL, -- 당시 스냅샷 심각도
+    rule_name_snapshot VARCHAR(100) NOT NULL, -- 당시 스냅샷 룰 명칭
+    created_at         TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    
+    CONSTRAINT fk_findings_run  FOREIGN KEY (run_id)  REFERENCES analysis_runs(run_id) ON DELETE CASCADE,
+    CONSTRAINT fk_findings_rule FOREIGN KEY (rule_id) REFERENCES rules(rule_id)         ON DELETE SET NULL
+);
+
+-- =================================================================
+-- 인덱스 추가 (조회 성능 개선)
+-- =================================================================
+CREATE INDEX idx_runs_project_id ON analysis_runs(project_id);
+CREATE INDEX idx_findings_run_id ON findings(run_id);
+
+
+
+
+
+
+
+
+

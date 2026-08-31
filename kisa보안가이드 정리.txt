@@ -1,0 +1,49 @@
+01 KISA-INPUT-01 Injection SQL 삽입
+02 KISA-INPUT-02 Execution 코드 삽입
+03 KISA-INPUT-03 File 경로 조작 및 자원 삽입
+04 KISA-INPUT-04 Browser 크로스 사이트 스크립트
+05 KISA-INPUT-05 Command 운영체제 명령어 삽입
+06 KISA-INPUT-06 Upload 위험한 형식 파일 업로드
+07 KISA-INPUT-07 Redirect 신뢰되지 않는 URL 자동 접속
+08 KISA-INPUT-08 XXE 부적절한 XML 외부 개체 참조
+09 KISA-INPUT-09 XML XML 삽입
+10 KISA-INPUT-10 LDAP LDAP 삽입
+11 KISA-INPUT-11 CSRF 크로스 사이트 요청 위조
+12 KISA-INPUT-12 SSRF 서버 사이드 요청 위조
+13 KISA-INPUT-13 Header HTTP 응답 분할
+14 KISA-INPUT-14 Integer 정수형 오버플로우
+15 KISA-INPUT-15 Trust 보안기능 결정에 사용하는 부적절한 입력값
+16 KISA-INPUT-16 Memory 메모리 버퍼 오버플로우
+17 KISA-INPUT-17 Format 포맷 스트링 삽입
+18 KISA-SEC-01 Auth 적절한 인증 없는 중요기능 허용
+19 KISA-SEC-02 Access 부적절한 인가
+20 KISA-SEC-03 Permission 중요한 자원에 대한 잘못된 권한 설정
+21 KISA-SEC-04 Crypto 취약한 암호화 알고리즘 사용
+22 KISA-SEC-05 Secret 암호화되지 않은 중요정보 저장·전송
+23 KISA-SEC-06 Secret 하드코딩된 중요정보
+24 KISA-SEC-07 Crypto 충분하지 않은 키 길이 사용
+25 KISA-SEC-08 Random 적절하지 않은 난수값 사용
+26 KISA-SEC-09 Password 취약한 비밀번호 허용
+27 KISA-SEC-10 Cookie 사용자 하드디스크에 저장되는 쿠키를 통한 정보노출
+28 KISA-SEC-11 Leak 주석문 안에 포함된 시스템 주요정보
+29 KISA-SEC-12 Hash 솔트 없이 일방향 해시 함수 사용
+30 KISA-SEC-13 Integrity 무결성 검사 없는 코드 다운로드
+31 KISA-SEC-14 Auth 반복된 인증시도 제한 기능 부재
+32 KISA-SEC-15 Token 인증정보 노출
+33 KISA-SEC-16 Session 세션 고정
+34 KISA-TIME-01 Race 경쟁조건: 검사 시점과 사용 시점
+35 KISA-TIME-02 DoS 종료되지 않는 반복문 또는 재귀 함수
+36 KISA-ERR-01 Error 오류 메시지 정보노출
+37 KISA-ERR-02 Error 오류 상황 대응 부재
+38 KISA-ERR-03 Error 부적절한 예외 처리
+39 KISA-CODE-01 Null Null Pointer 역참조
+40 KISA-CODE-02 Resource 부적절한 자원 해제
+41 KISA-CODE-03 Resource 해제된 자원 사용
+42 KISA-CODE-04 State 초기화되지 않은 변수 사용
+43 KISA-CODE-05 Deserialize 신뢰할 수 없는 데이터의 역직렬화
+44 KISA-CAPS-01 Session 잘못된 세션에 의한 데이터 정보노출
+45 KISA-CAPS-02 Debug 제거되지 않고 남은 디버그 코드
+46 KISA-CAPS-03 Encapsulation Public 메소드로부터 반환된 Private 배열
+47 KISA-CAPS-04 Encapsulation Private 배열에 Public 데이터 할당
+48 KISA-API-01 DNS DNS Lookup에 의존한 보안결정
+49 KISA-API-02 API 취약한 API 사용

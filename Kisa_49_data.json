@@ -1,0 +1,347 @@
+{
+  "kisa_security_weaknesses": [
+    {
+      "category_code": "INPUT",
+      "category_name": "입력 데이터 검증 및 표현",
+      "count": 17,
+      "items": [
+        {
+          "num": 1,
+          "rule_code": "KISA-INPUT-01",
+          "tag": "Injection",
+          "name": "SQL 삽입"
+        },
+        {
+          "num": 2,
+          "rule_code": "KISA-INPUT-02",
+          "tag": "Execution",
+          "name": "코드 삽입"
+        },
+        {
+          "num": 3,
+          "rule_code": "KISA-INPUT-03",
+          "tag": "File",
+          "name": "경로 조작 및 자원 삽입"
+        },
+        {
+          "num": 4,
+          "rule_code": "KISA-INPUT-04",
+          "tag": "Browser",
+          "name": "크로스 사이트 스크립트"
+        },
+        {
+          "num": 5,
+          "rule_code": "KISA-INPUT-05",
+          "tag": "Command",
+          "name": "운영체제 명령어 삽입"
+        },
+        {
+          "num": 6,
+          "rule_code": "KISA-INPUT-06",
+          "tag": "Upload",
+          "name": "위험한 형식 파일 업로드"
+        },
+        {
+          "num": 7,
+          "rule_code": "KISA-INPUT-07",
+          "tag": "Redirect",
+          "name": "신뢰되지 않는 URL 자동 접속"
+        },
+        {
+          "num": 8,
+          "rule_code": "KISA-INPUT-08",
+          "tag": "XXE",
+          "name": "부적절한 XML 외부 개체 참조"
+        },
+        {
+          "num": 9,
+          "rule_code": "KISA-INPUT-09",
+          "tag": "XML",
+          "name": "XML 삽입"
+        },
+        {
+          "num": 10,
+          "rule_code": "KISA-INPUT-10",
+          "tag": "LDAP",
+          "name": "LDAP 삽입"
+        },
+        {
+          "num": 11,
+          "rule_code": "KISA-INPUT-11",
+          "tag": "CSRF",
+          "name": "크로스 사이트 요청 위조"
+        },
+        {
+          "num": 12,
+          "rule_code": "KISA-INPUT-12",
+          "tag": "SSRF",
+          "name": "서버 사이드 요청 위조"
+        },
+        {
+          "num": 13,
+          "rule_code": "KISA-INPUT-13",
+          "tag": "Header",
+          "name": "HTTP 응답 분할"
+        },
+        {
+          "num": 14,
+          "rule_code": "KISA-INPUT-14",
+          "tag": "Integer",
+          "name": "정수형 오버플로우"
+        },
+        {
+          "num": 15,
+          "rule_code": "KISA-INPUT-15",
+          "tag": "Trust",
+          "name": "보안기능 결정에 사용하는 부적절한 입력값"
+        },
+        {
+          "num": 16,
+          "rule_code": "KISA-INPUT-16",
+          "tag": "Memory",
+          "name": "메모리 버퍼 오버플로우"
+        },
+        {
+          "num": 17,
+          "rule_code": "KISA-INPUT-17",
+          "tag": "Format",
+          "name": "포맷 스트링 삽입"
+        }
+      ]
+    },
+    {
+      "category_code": "SEC",
+      "category_name": "보안 기능",
+      "count": 16,
+      "items": [
+        {
+          "num": 18,
+          "rule_code": "KISA-SEC-01",
+          "tag": "Auth",
+          "name": "적절한 인증 없는 중요기능 허용"
+        },
+        {
+          "num": 19,
+          "rule_code": "KISA-SEC-02",
+          "tag": "Access",
+          "name": "부적절한 인가"
+        },
+        {
+          "num": 20,
+          "rule_code": "KISA-SEC-03",
+          "tag": "Permission",
+          "name": "중요한 자원에 대한 잘못된 권한 설정"
+        },
+        {
+          "num": 21,
+          "rule_code": "KISA-SEC-04",
+          "tag": "Crypto",
+          "name": "취약한 암호화 알고리즘 사용"
+        },
+        {
+          "num": 22,
+          "rule_code": "KISA-SEC-05",
+          "tag": "Secret",
+          "name": "암호화되지 않은 중요정보 저장·전송"
+        },
+        {
+          "num": 23,
+          "rule_code": "KISA-SEC-06",
+          "tag": "Secret",
+          "name": "하드코딩된 중요정보"
+        },
+        {
+          "num": 24,
+          "rule_code": "KISA-SEC-07",
+          "tag": "Crypto",
+          "name": "충분하지 않은 키 길이 사용"
+        },
+        {
+          "num": 25,
+          "rule_code": "KISA-SEC-08",
+          "tag": "Random",
+          "name": "적절하지 않은 난수값 사용"
+        },
+        {
+          "num": 26,
+          "rule_code": "KISA-SEC-09",
+          "tag": "Password",
+          "name": "취약한 비밀번호 허용"
+        },
+        {
+          "num": 27,
+          "rule_code": "KISA-SEC-10",
+          "tag": "Cookie",
+          "name": "사용자 하드디스크에 저장되는 쿠키를 통한 정보노출"
+        },
+        {
+          "num": 28,
+          "rule_code": "KISA-SEC-11",
+          "tag": "Leak",
+          "name": "주석문 안에 포함된 시스템 주요정보"
+        },
+        {
+          "num": 29,
+          "rule_code": "KISA-SEC-12",
+          "tag": "Hash",
+          "name": "솔트 없이 일방향 해시 함수 사용"
+        },
+        {
+          "num": 30,
+          "rule_code": "KISA-SEC-13",
+          "tag": "Integrity",
+          "name": "무결성 검사 없는 코드 다운로드"
+        },
+        {
+          "num": 31,
+          "rule_code": "KISA-SEC-14",
+          "tag": "Auth",
+          "name": "반복된 인증시도 제한 기능 부재"
+        },
+        {
+          "num": 32,
+          "rule_code": "KISA-SEC-15",
+          "tag": "Token",
+          "name": "인증정보 노출"
+        },
+        {
+          "num": 33,
+          "rule_code": "KISA-SEC-16",
+          "tag": "Session",
+          "name": "세션 고정"
+        }
+      ]
+    },
+    {
+      "category_code": "TIME",
+      "category_name": "시간 및 상태",
+      "count": 2,
+      "items": [
+        {
+          "num": 34,
+          "rule_code": "KISA-TIME-01",
+          "tag": "Race",
+          "name": "경쟁조건: 검사 시점과 사용 시점"
+        },
+        {
+          "num": 35,
+          "rule_code": "KISA-TIME-02",
+          "tag": "DoS",
+          "name": "종료되지 않는 반복문 또는 재귀 함수"
+        }
+      ]
+    },
+    {
+      "category_code": "ERR",
+      "category_name": "에러 처리",
+      "count": 3,
+      "items": [
+        {
+          "num": 36,
+          "rule_code": "KISA-ERR-01",
+          "tag": "Error",
+          "name": "오류 메시지 정보노출"
+        },
+        {
+          "num": 37,
+          "rule_code": "KISA-ERR-02",
+          "tag": "Error",
+          "name": "오류 상황 대응 부재"
+        },
+        {
+          "num": 38,
+          "rule_code": "KISA-ERR-03",
+          "tag": "Error",
+          "name": "부적절한 예외 처리"
+        }
+      ]
+    },
+    {
+      "category_code": "CODE",
+      "category_name": "코드 오류",
+      "count": 5,
+      "items": [
+        {
+          "num": 39,
+          "rule_code": "KISA-CODE-01",
+          "tag": "Null",
+          "name": "Null Pointer 역참조"
+        },
+        {
+          "num": 40,
+          "rule_code": "KISA-CODE-02",
+          "tag": "Resource",
+          "name": "부적절한 자원 해제"
+        },
+        {
+          "num": 41,
+          "rule_code": "KISA-CODE-03",
+          "tag": "Resource",
+          "name": "해제된 자원 사용"
+        },
+        {
+          "num": 42,
+          "rule_code": "KISA-CODE-04",
+          "tag": "State",
+          "name": "초기화되지 않은 변수 사용"
+        },
+        {
+          "num": 43,
+          "rule_code": "KISA-CODE-05",
+          "tag": "Deserialize",
+          "name": "신뢰할 수 없는 데이터의 역직렬화"
+        }
+      ]
+    },
+    {
+      "category_code": "CAPS",
+      "category_name": "캡슐화",
+      "count": 4,
+      "items": [
+        {
+          "num": 44,
+          "rule_code": "KISA-CAPS-01",
+          "tag": "Session",
+          "name": "잘못된 세션에 의한 데이터 정보노출"
+        },
+        {
+          "num": 45,
+          "rule_code": "KISA-CAPS-02",
+          "tag": "Debug",
+          "name": "제거되지 않고 남은 디버그 코드"
+        },
+        {
+          "num": 46,
+          "rule_code": "KISA-CAPS-03",
+          "tag": "Encapsulation",
+          "name": "Public 메소드로부터 반환된 Private 배열"
+        },
+        {
+          "num": 47,
+          "rule_code": "KISA-CAPS-04",
+          "tag": "Encapsulation",
+          "name": "Private 배열에 Public 데이터 할당"
+        }
+      ]
+    },
+    {
+      "category_code": "API",
+      "category_name": "API 남용",
+      "count": 2,
+      "items": [
+        {
+          "num": 48,
+          "rule_code": "KISA-API-01",
+          "tag": "DNS",
+          "name": "DNS Lookup에 의존한 보안결정"
+        },
+        {
+          "num": 49,
+          "rule_code": "KISA-API-02",
+          "tag": "API",
+          "name": "취약한 API 사용"
+        }
+      ]
+    }
+  ]
+}

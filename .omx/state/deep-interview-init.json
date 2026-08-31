@@ -1,0 +1,19 @@
+{
+  "mode": "deep-interview",
+  "active": true,
+  "current_phase": "deep-interview",
+  "state": {
+    "interview_id": "01a049b5-cc89-7e10-b45e-3ba76c4a650c",
+    "profile": "standard",
+    "type": "greenfield",
+    "initial_idea": "프로젝트를 받아서 보안 취약점이 없는지 코드를 정적 분석해주는 SAST프로그램을 만들려고해.",
+    "rounds": [],
+    "current_ambiguity": 1.0,
+    "threshold": 0.2,
+    "max_rounds": 12,
+    "challenge_modes_used": [],
+    "current_stage": "intent-first",
+    "current_focus": "intent",
+    "context_snapshot_path": ".omx/context/sast-static-analysis-20260828T185453Z.md"
+  }
+}
