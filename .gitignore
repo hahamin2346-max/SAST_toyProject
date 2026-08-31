@@ -1,0 +1,17 @@
+# Python 캐시 파일
+__pycache__/
+*.pyc
+*.pyo
+
+# 로컬 DB 및 데이터
+*.db
+*.sqlite3
+
+# OMX 로그 및 일시 상태
+.omx/logs/
+.omx/state/sessions/
+
+# 프로젝트 개발 환경
+.venv/
+venv/
+env/
