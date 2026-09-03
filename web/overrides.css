@@ -1,5 +1,9 @@
 /* Pen reference alignment: projects stay together and severity/confidence use distinct visual treatments. */
 .project-list{display:flex;flex-direction:column;gap:10px;padding-top:14px}
+.project-row{display:flex;align-items:stretch;gap:6px}
+.project-row .project-item{flex:1}
+.project-delete{flex:0 0 auto;border:1px solid #fecaca;background:#fef2f2;color:#b91c1c;border-radius:8px;padding:0 10px;font-size:13px;cursor:pointer;line-height:1}
+.project-delete:hover{background:#fee2e2}
 .project-item,.project-item.denied{margin:0;padding:10px;background:#fef2f2;color:#991b1b}
 .project-item.allowed{background:#f0fdf4;color:#166534}
 .project-item.allowed .project-status{color:#16a34a}.project-item.denied .project-status{color:#dc2626}.project-item small{margin-top:10px}
@@ -15,3 +19,67 @@
 .slide-menu nav button:first-child{background:transparent;color:#c7d4e8}.slide-menu nav button.active{background:#1d2d4b;color:#fff}
 @media(max-width:800px){.rules-page{padding:22px 16px;overflow:auto}.rules-columns{grid-template-columns:1fr;min-width:720px}.page-heading-row{gap:16px}.page-heading-row .blue-button{flex:0 0 auto}}
 .project-form label{display:block;margin:14px 0 6px;color:#334155;font-weight:700;font-size:13px}.project-form input,.project-form select,.project-form textarea{width:100%;border:1px solid #d8e0ea;border-radius:6px;padding:10px;background:#fff}.project-form textarea{resize:vertical}.project-form input:focus,.project-form select:focus,.project-form textarea:focus{outline:0;border-color:#2563eb;box-shadow:0 0 0 3px #dbeafe}.project-form .upload-button{width:100%;margin:24px 0 0}
+.permission-actions{display:flex;flex-wrap:wrap;gap:5px}.permission-actions .outline-button{font-size:10px;padding:5px 7px}
+/* Dashboard: file tree, findings selection, inline finding detail panel */
+.project-item>div b{display:flex;align-items:center;gap:2px}
+.file-tree{margin:2px 0 12px;padding-left:6px;border-left:2px solid #e2e8f0}
+.tree-node{font-size:11px;color:#475569;padding:3px 4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tree-node.dir{font-weight:700;color:#334155}
+.tree-node.empty{color:#94a3b8}
+.finding-row.active{background:#eff6ff;box-shadow:inset 3px 0 0 #2563eb}
+.confidence-badge{text-transform:lowercase}
+.dashboard-grid{grid-template-columns:264px minmax(0,1fr)}
+.dashboard-grid.with-detail{grid-template-columns:264px minmax(0,1fr) 420px}
+.project-panel{padding:0 14px}
+.tree-node{white-space:normal;word-break:break-all;overflow:visible;text-overflow:clip}
+@media(max-width:900px){.dashboard-grid,.dashboard-grid.with-detail{grid-template-columns:1fr}}
+.detail-panel{background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:20px 22px;height:574px;overflow:auto}
+.detail-head{display:flex;justify-content:space-between;align-items:flex-start}
+.detail-close{border:0;background:transparent;font-size:22px;line-height:1;color:#64748b}
+.detail-panel h3{margin:6px 0 14px;color:#1d4ed8;font-size:16px;word-break:break-all}
+.detail-panel .detail-row{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-top:1px solid #f1f5f9;font-size:12px}
+.detail-panel .detail-row span{color:#64748b;flex:0 0 auto}
+.detail-panel .detail-row b{color:#334155;text-align:right;word-break:break-all}
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:16px 0}
+.detail-grid>div{display:flex;flex-direction:column;gap:8px;align-items:flex-start}
+.detail-grid span{color:#64748b;font-size:12px}
+.badge.medium{color:#ea580c;background:#ffedd5}
+.badge.low{color:#16a34a;background:#dcfce7}
+.badge{text-transform:lowercase}
+.detail-label{margin:16px 0 6px;font-size:11px;font-weight:800;color:#64748b}
+.detail-panel .code-box{white-space:pre-wrap;word-break:break-all;margin:0}
+.detail-message{font-size:13px;color:#334155;line-height:1.55;margin:0}
+@media(max-width:900px){.dashboard-grid.with-detail{grid-template-columns:1fr}.detail-panel{height:auto}}
+.project-form .drop-zone{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;margin:0;text-align:center;cursor:pointer}
+.project-form .drop-zone b{font-size:14px;color:#334155}
+.project-form .drop-zone>span:not(.upload-icon){font-size:12px;color:#64748b}
+.drop-zone.drag{border-color:#2563eb;background:#eff6ff}
+/* Users page: single "권한 수정" action + project permission modal */
+.user-table .guide-row>div{display:flex;justify-content:flex-end}
+.permission-modal{position:relative;width:540px;max-width:calc(100vw - 40px);max-height:calc(100vh - 72px);overflow:auto}
+.permission-modal .modal-close{position:absolute;top:14px;right:16px}
+.permission-modal h2{margin:12px 0 4px}
+.perm-section{margin-top:18px;display:flex;flex-direction:column;gap:8px}
+.perm-label{font-size:13px;font-weight:800}
+.perm-label.on{color:#166534}.perm-label.off{color:#991b1b}
+.perm-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 14px;border-radius:8px;font-size:13px}
+.perm-row b{font-weight:700}
+.perm-row.allowed{background:#f0fdf4;color:#166534}
+.perm-row.denied{background:#fef2f2;color:#991b1b}
+.perm-row .outline-button{flex:0 0 auto;background:#fff;font-size:11px;padding:6px 10px}
+.perm-row .outline-button[disabled]{opacity:.5;cursor:default}
+/* Findings list scrolls inside the panel so a long result set stays visible on the dashboard */
+.findings-panel{display:flex;flex-direction:column}
+.findings-panel .file-bar,.findings-panel .table-head{flex:0 0 auto}
+.finding-scroll{flex:1;min-height:0;overflow-y:auto}
+/* Dashboard findings filter dropdown */
+.file-bar{position:relative}
+.filter-wrap{position:relative}
+.filter-button{cursor:pointer}
+.filter-menu{position:absolute;right:0;top:calc(100% + 6px);z-index:20;min-width:184px;background:#fff;border:1px solid #e2e8f0;border-radius:8px;box-shadow:0 12px 28px rgba(15,23,42,.14);padding:8px}
+.filter-group{display:flex;flex-wrap:wrap;gap:5px;padding:6px 4px}
+.filter-group+.filter-group{border-top:1px solid #f1f5f9}
+.filter-group>span{width:100%;font-size:10px;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:.04em}
+.filter-opt{border:1px solid #e2e8f0;background:#fff;border-radius:6px;padding:5px 9px;font-size:11px;color:#475569;cursor:pointer}
+.filter-opt:hover{background:#f8fafc}
+.filter-opt.on{background:#1d4ed8;border-color:#1d4ed8;color:#fff}

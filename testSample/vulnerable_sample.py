@@ -66,6 +66,48 @@ def calculate_expression(user_input_expr):
     return result
 
 
+import hashlib
+import pickle
+import random
+import yaml
+
+# [취약점 6] KISA-SEC-11: 주석문 안에 포함된 시스템 주요정보
+# 운영 DB 접속: admin_password = P@ssw0rd_prod_2024 (임시)
+
+
+def issue_session_token(user_id):
+    """[취약점 7] KISA-SEC-08: 적절하지 않은 난수값 사용"""
+    # 예측 가능한 random 모듈로 세션 토큰을 생성
+    session_token = str(random.randint(100000, 999999))
+    return session_token
+
+
+def load_profile(blob):
+    """[취약점 8] KISA-CODE-05: 신뢰할 수 없는 데이터의 역직렬화"""
+    profile = pickle.loads(blob)
+    config = yaml.load(blob)
+    return profile, config
+
+
+def fingerprint(raw):
+    """[취약점 9] KISA-SEC-04: 취약한 암호화 알고리즘 사용"""
+    return hashlib.md5(raw.encode()).hexdigest()
+
+
+def start_server(app):
+    """[취약점 10] KISA-CAPS-02: 제거되지 않고 남은 디버그 코드"""
+    breakpoint()
+    app.run(host="0.0.0.0", debug=True)
+
+
+def handle_request(request):
+    """[취약점 11] KISA-ERR-01: 오류 메시지 정보노출"""
+    try:
+        return process(request)
+    except Exception as err:
+        return HttpResponse(str(err))
+
+
 if __name__ == "__main__":
     # 시연용 실행 코드
     print("--- Running Vulnerable Code Sample ---")

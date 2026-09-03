@@ -6,6 +6,9 @@ __pycache__/
 # 로컬 DB 및 데이터
 *.db
 *.sqlite3
+*.sqlite
+data/
+web/__pycache__/
 
 # OMX 로그 및 일시 상태
 .omx/logs/

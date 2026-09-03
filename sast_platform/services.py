@@ -1,9 +1,21 @@
 from collections import Counter
 from pathlib import Path
+import os
 from .analyzers import AnalyzerRegistry
 from .auth import AuthError, TokenService, hash_password, verify_password
 from .models import AnalysisRun, Finding, Project, Role, RunStatus, User, new_id, now
 from .repositories import Repositories
+from .rules import RULE_SPECS
+
+
+EXT_LANGUAGE = {
+    ".py": "PYTHON",
+    ".js": "JAVASCRIPT", ".jsx": "JAVASCRIPT", ".mjs": "JAVASCRIPT",
+    ".ts": "JAVASCRIPT", ".tsx": "JAVASCRIPT",
+    ".java": "JAVA",
+}
+MAX_FILES = 2000
+MAX_FINDINGS = 5000
 
 
 class AuthorizationError(Exception):
@@ -49,6 +61,13 @@ class Platform:
         project = Project(new_id(), data["name"], data.get("description", ""), data["source_type"], data["target_language"].upper(), data["source_location"], user.user_id)
         return self.repos.add_project(project)
 
+    def delete_project(self, admin: User, project_id: str) -> Project:
+        if admin.role != Role.ADMIN:
+            raise AuthorizationError("관리자만 프로젝트를 삭제할 수 있습니다.")
+        project = self.require_project(admin, project_id)
+        self.repos.delete_project(project.project_id)
+        return project
+
     def grant_access(self, admin: User, project_id: str, user_id: str) -> None:
         if admin.role != Role.ADMIN:
             raise AuthorizationError("관리자만 프로젝트 권한을 변경할 수 있습니다.")
@@ -69,7 +88,7 @@ class Platform:
 
     def run_findings(self, user: User, project_id: str, run_id: str) -> list[Finding]:
         self.require_project(user, project_id)
-        if not any(run.run_id == run_id for run in self.repos.project_runs(project_id)):
+        if not any(str(run.run_id) == str(run_id) for run in self.repos.project_runs(project_id)):
             raise AuthorizationError("분석 실행을 찾을 수 없거나 접근 권한이 없습니다.")
         return self.repos.run_findings(run_id)
 
@@ -83,6 +102,33 @@ class Platform:
             raise AuthorizationError("관리자만 사용자를 조회할 수 있습니다.")
         return self.repos.all_users()
 
+    def _collect_files(self, source_path: Path) -> list[Path]:
+        if source_path.is_dir():
+            files = [p for p in sorted(source_path.rglob("*")) if p.is_file() and p.suffix.lower() in EXT_LANGUAGE]
+        else:
+            files = [source_path]
+        return files[:MAX_FILES]
+
+    def project_files(self, user: User, project_id: str) -> list[dict]:
+        project = self.require_project(user, project_id)
+        root = Path(project.source_location).resolve()
+        if root.is_file():
+            return [{"path": root.name, "language": EXT_LANGUAGE.get(root.suffix.lower())}]
+        items: list[dict] = []
+        for path in sorted(root.rglob("*")):
+            if not path.is_file():
+                continue
+            resolved = path.resolve()
+            if root != resolved and root not in resolved.parents:
+                continue
+            items.append({
+                "path": resolved.relative_to(root).as_posix(),
+                "language": EXT_LANGUAGE.get(path.suffix.lower()),
+            })
+            if len(items) >= MAX_FILES:
+                break
+        return items
+
     def analyze_file(self, user: User, project_id: str) -> AnalysisRun:
         if user.role != Role.ADMIN:
             raise AuthorizationError("관리자만 분석을 실행할 수 있습니다.")
@@ -91,15 +137,64 @@ class Platform:
         self.repos.add_run(run)
         run.status, run.started_at = RunStatus.RUNNING, now()
         try:
-            source = Path(project.source_location).read_text(encoding="utf-8")
-            raw_findings = self.analyzers.get(project.target_language).analyze(source, project.source_location)
-            rules = {r.rule_code: r for r in self.repos.all_rules()}
-            for raw in raw_findings:
-                rule = rules.get(raw.rule_code)
-                finding = Finding(new_id(), run.run_id, rule.rule_id if rule else None, raw.rule_code, rule.name if rule else raw.rule_code, project.target_language, rule.default_severity if rule else "MEDIUM", raw.confidence, project.source_location, raw.line_number, raw.message, raw.evidence, "입력 검증 및 안전한 API 사용을 적용하세요.")
+            source_path = Path(project.source_location)
+            configured_langs = self.repos.all_languages()
+            active_langs = (
+                {lang["language_code"] for lang in configured_langs if lang["is_active"]}
+                if configured_langs else None
+            )
+            rules_by_code = {rule.rule_code: rule for rule in self.repos.all_rules()}
+
+            scanned, skipped = [], []
+            raw_findings: list[tuple[Path, str, object]] = []
+            for file_path in self._collect_files(source_path):
+                language = EXT_LANGUAGE.get(file_path.suffix.lower())
+                if language is None or (active_langs is not None and language not in active_langs):
+                    skipped.append(str(file_path))
+                    continue
+                try:
+                    source = file_path.read_text(encoding="utf-8", errors="replace")
+                except OSError:
+                    skipped.append(str(file_path))
+                    continue
+                analyzer = self.analyzers.get(language)
+                for raw in analyzer.analyze(source, str(file_path)):
+                    raw_findings.append((file_path, language, raw))
+                scanned.append(file_path)
+
+            recorded = 0
+            for file_path, language, raw in raw_findings[:MAX_FINDINGS]:
+                spec = RULE_SPECS.get(raw.rule_code)
+                if spec is None:
+                    continue
+                rule = rules_by_code.get(raw.rule_code)
+                if rule is not None and not rule.is_active:
+                    continue
+                display_path = (
+                    os.path.relpath(file_path, project.source_location)
+                    if source_path.is_dir() else str(file_path)
+                )
+                finding = Finding(
+                    new_id(), run.run_id, rule.rule_id if rule else None,
+                    raw.rule_code, rule.name if rule else spec.name, language,
+                    spec.severity, raw.confidence, display_path, raw.line_number,
+                    raw.message or spec.message, raw.evidence, spec.recommendation,
+                    raw_result={
+                        "slug": spec.slug, "column": raw.column,
+                        "kisa_num": spec.kisa_num, "kisa_code": spec.code,
+                    },
+                )
                 self.repos.add_finding(finding)
-            counts = Counter(f.severity for f in self.repos.run_findings(run.run_id))
-            run.summary = {"finding_count": len(raw_findings), "severity": dict(counts)}
+                recorded += 1
+
+            stored = self.repos.run_findings(run.run_id)
+            run.summary = {
+                "file_count": len(scanned),
+                "finding_count": recorded,
+                "severity": dict(Counter(f.severity for f in stored)),
+                "by_rule": dict(Counter(f.rule_code_snapshot for f in stored)),
+                "skipped_count": len(skipped),
+            }
             run.status = RunStatus.COMPLETED
         except Exception as exc:
             run.status, run.error_message = RunStatus.FAILED, str(exc)

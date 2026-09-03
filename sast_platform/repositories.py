@@ -49,6 +49,8 @@ class Repositories:
     def all_projects(self) -> list[Project]: return self.projects.all()
     def get_project(self, project_id: str | int) -> Project | None: return self.projects.get(project_id)
     def add_project(self, project: Project) -> Project: return self.projects.add(project, project.project_id)
+    def delete_project(self, project_id: str | int) -> None:
+        self.projects.items.pop(project_id, None); self.project_members.pop(project_id, None)
     def all_rules(self) -> list[Rule]: return self.rules.all()
     def add_rule(self, rule: Rule) -> Rule: return self.rules.add(rule, rule.rule_id)
     def add_run(self, run: AnalysisRun) -> AnalysisRun: return self.runs.add(run, run.run_id)
@@ -118,6 +120,10 @@ class SQLiteRepositories:
     def get_project(self, project_id: str | int) -> Project | None:
         row = self.connection.execute("SELECT * FROM projects WHERE project_id = ?", (project_id,)).fetchone()
         return self._project(row) if row else None
+
+    def delete_project(self, project_id: str | int) -> None:
+        self.connection.execute("DELETE FROM projects WHERE project_id = ?", (project_id,))
+        self.connection.commit()
 
     def all_projects(self) -> list[Project]:
         return [self._project(row) for row in self.connection.execute("SELECT * FROM projects ORDER BY project_id")]
