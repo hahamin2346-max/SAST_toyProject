@@ -26,7 +26,8 @@ async function api(path, options = {}) {
   if (!response.ok) throw new Error(body?.error || '요청을 처리하지 못했습니다.');
   return body;
 }
-function header(title, showActions = false) { return `<header class="sub-header"><div><div class="eyebrow">SAST PLATFORM</div><h1 id="page-title">${title}</h1></div>${showActions ? '<div class="header-actions"><span class="done-dot"></span> 완료 <button class="blue-button compact" id="run-button">진단하기</button></div>' : ''}</header>`; }
+const isAdmin = () => state.currentUser?.role === 'ADMIN' || state.currentUser?.role?.value === 'ADMIN';
+function header(title, showActions = false) { return `<header class="sub-header"><div><div class="eyebrow">SAST PLATFORM</div><h1 id="page-title">${title}</h1></div>${showActions ? `<div class="header-actions"><span class="done-dot"></span> 완료 ${isAdmin() ? '<button class="blue-button compact" id="run-button">진단하기</button>' : ''}</div>` : ''}</header>`; }
 function fileTree(files) {
   if (!files.length) return '<div class="file-tree"><div class="tree-node empty">파일이 없습니다.</div></div>';
   const root = {};

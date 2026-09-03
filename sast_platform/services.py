@@ -130,8 +130,8 @@ class Platform:
         return items
 
     def analyze_file(self, user: User, project_id: str) -> AnalysisRun:
-        # Anyone with access to the project may run a scan; require_project already
-        # rejects users who are neither an admin nor a member of this project.
+        if user.role != Role.ADMIN:
+            raise AuthorizationError("관리자만 분석을 실행할 수 있습니다.")
         project = self.require_project(user, project_id)
         run = AnalysisRun(new_id(), project.project_id, user.user_id, "AST", project.target_language)
         self.repos.add_run(run)
