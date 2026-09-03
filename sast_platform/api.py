@@ -6,7 +6,7 @@ import shutil
 import uuid
 import zipfile
 from collections import Counter
-from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
 from urllib.parse import unquote
 from .analyzers import AnalyzerRegistry
@@ -202,6 +202,9 @@ def create_server(host="127.0.0.1", port=8000):
             except AuthorizationError as exc: self.send_json(403, {"error": str(exc)})
             except Exception as exc: self.send_json(400, {"error": str(exc)})
         def log_message(self, *_): pass
-    server = ThreadingHTTPServer((host, port), Handler)
+    # Single-threaded on purpose: SQLiteRepositories shares one connection, and the
+    # frontend issues many requests in parallel. Serving them one at a time keeps that
+    # connection safe. Swap for a per-thread connection pool before real concurrency.
+    server = HTTPServer((host, port), Handler)
     server.platform = platform
     return server

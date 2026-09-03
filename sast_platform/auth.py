@@ -29,7 +29,7 @@ def verify_password(password: str, encoded: str) -> bool:
 
 
 class TokenService:
-    def __init__(self, secret: bytes, ttl_seconds: int = 3600):
+    def __init__(self, secret: bytes, ttl_seconds: int = 28800):  # 8h — avoid mid-work expiry
         self.secret = secret
         self.ttl_seconds = ttl_seconds
 
