@@ -55,7 +55,7 @@ def create_platform() -> Platform:
     return Platform(repos, TokenService(os.getenv("SAST_TOKEN_SECRET", "development-only-secret").encode()), AnalyzerRegistry())
 
 
-def create_server(host="127.0.0.1", port=8000):
+def create_server(host="0.0.0.0", port=8000):
     platform = create_platform()
     web_root = (Path(__file__).parent.parent / "web").resolve()
 
@@ -69,8 +69,8 @@ def create_server(host="127.0.0.1", port=8000):
             if user.role != Role.ADMIN:
                 raise AuthorizationError("관리자만 프로젝트를 등록할 수 있습니다.")
             length = int(self.headers.get("Content-Length", 0))
-            if length <= 0 or length > 25 * 1024 * 1024:
-                raise ValueError("ZIP 파일은 25MB 이하만 업로드할 수 있습니다.")
+            if length <= 0 or length > 50 * 1024 * 1024:
+                raise ValueError("ZIP 파일은 50MB 이하만 업로드할 수 있습니다.")
             content_type = self.headers.get("Content-Type", "")
             from email.parser import BytesParser
             from email.policy import default
@@ -80,7 +80,9 @@ def create_server(host="127.0.0.1", port=8000):
             for part in message.iter_parts():
                 name = part.get_param("name", header="content-disposition")
                 if name == "source_file": upload = part
-                elif name: fields[name] = part.get_content()
+                elif name:
+                    raw = part.get_payload(decode=True)
+                    fields[name] = raw.decode("utf-8", "replace") if raw is not None else part.get_content()
             if not upload or not upload.get_filename():
                 raise ValueError("ZIP 파일을 선택해 주세요.")
             if not upload.get_filename().lower().endswith(".zip"):
@@ -92,7 +94,7 @@ def create_server(host="127.0.0.1", port=8000):
             try:
                 with zipfile.ZipFile(io.BytesIO(archive)) as zf:
                     members = [info for info in zf.infolist() if not info.is_dir()]
-                    if len(members) > 1000 or sum(info.file_size for info in members) > 100 * 1024 * 1024:
+                    if len(members) > 5000 or sum(info.file_size for info in members) > 500 * 1024 * 1024:
                         raise ValueError("ZIP 내부 파일 수 또는 압축 해제 용량 제한을 초과했습니다.")
                     root = workspace.resolve()
                     for info in members:

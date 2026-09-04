@@ -1,7 +1,7 @@
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => document.querySelectorAll(selector);
 const esc = (value) => String(value ?? '').replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
-const state = { currentUser: null, projects: [], rules: [], languages: [], users: [], members: {}, runs: [], findings: [], currentProject: null, projectFiles: [], selectedFinding: null, permissionUser: null, findingFilter: { sort: 'severity', severity: 'ALL' } };
+const state = { currentUser: null, projects: [], rules: [], languages: [], users: [], members: {}, runs: [], findings: [], currentProject: null, projectFiles: [], treeOpen: true, selectedFinding: null, permissionUser: null, findingFilter: { sort: 'severity', severity: 'ALL' } };
 const SEVERITY_RANK = { HIGH: 0, MEDIUM: 1, LOW: 2 };
 function visibleFindings() {
   const f = state.findingFilter;
@@ -38,7 +38,7 @@ function fileTree(files) {
 function projectPanel() {
   if (!state.projects.length) return `<aside class="project-panel"><div class="panel-title">프로젝트 목록</div><p class="empty-state">등록된 프로젝트가 없습니다.</p><button class="outline-button project-add" id="project-add">＋ 프로젝트 등록하기</button></aside>`;
   const canManage = state.currentUser?.role === 'ADMIN' || state.currentUser?.role?.value === 'ADMIN';
-  return `<aside class="project-panel"><div class="panel-title">프로젝트 목록</div><div class="project-list">${state.projects.map((project) => { const selected = state.currentProject?.project_id === project.project_id; return `<div class="project-row"><button class="project-item allowed ${selected ? 'selected' : ''}" data-project-id="${project.project_id}"><div><b>📁　${esc(project.name)}</b><span class="project-status">ALLOW</span></div></button>${canManage ? `<button class="project-delete" data-project-id="${project.project_id}" aria-label="프로젝트 삭제" title="프로젝트 삭제">🗑</button>` : ''}</div>${selected ? fileTree(state.projectFiles) : ''}`; }).join('')}</div><button class="outline-button project-add" id="project-add">＋ 프로젝트 등록하기</button></aside>`;
+  return `<aside class="project-panel"><div class="panel-title">프로젝트 목록</div><div class="project-list">${state.projects.map((project) => { const selected = state.currentProject?.project_id === project.project_id; return `<div class="project-row"><button class="project-item allowed ${selected ? 'selected' : ''}" data-project-id="${project.project_id}"><div><b>📁　${esc(project.name)}<span class="tree-caret">${selected ? (state.treeOpen ? '▾' : '▸') : ''}</span></b><span class="project-status">ALLOW</span></div></button>${canManage ? `<button class="project-delete" data-project-id="${project.project_id}" aria-label="프로젝트 삭제" title="프로젝트 삭제">🗑</button>` : ''}</div>${selected && state.treeOpen ? fileTree(state.projectFiles) : ''}`; }).join('')}</div><button class="outline-button project-add" id="project-add">＋ 프로젝트 등록하기</button></aside>`;
 }
 function severityGauge(severity) { const value = String(severity || 'MEDIUM').toLowerCase(); return `<span class="severity-gauge ${value}"><span>${value}</span><i></i></span>`; }
 function confidenceBadge(confidence) { const value = Number(confidence); const type = value >= .8 ? 'high' : value >= .5 ? 'medium' : 'low'; return `<span class="confidence-badge ${type}">${type}</span>`; }
@@ -51,6 +51,20 @@ function filterMenu() {
     <div class="filter-group"><span>심각도</span>${opt('severity', 'ALL', '전체')}${['HIGH', 'MEDIUM', 'LOW'].map((s) => opt('severity', s, s)).join('')}</div>
   </div>`;
 }
+function findingsSummary() {
+  const all = state.findings;
+  const total = all.length;
+  const types = new Set(all.map((finding) => finding.rule_code_snapshot)).size;
+  const count = (level) => all.filter((finding) => String(finding.severity).toUpperCase() === level).length;
+  const project = state.currentProject ? esc(state.currentProject.name) : '선택된 프로젝트 없음';
+  if (!total) return `<div class="finding-summary"><span class="fs-project">📁 ${project}</span><span class="fs-empty">탐지된 취약점이 없습니다.</span></div>`;
+  return `<div class="finding-summary"><span class="fs-project">📁 ${project}</span>
+    <span class="fs-metric"><b>${total}</b>건 탐지</span>
+    <span class="fs-metric"><b>${types}</b>종류</span>
+    <span class="fs-sev high">HIGH ${count('HIGH')}</span>
+    <span class="fs-sev medium">MEDIUM ${count('MEDIUM')}</span>
+    <span class="fs-sev low">LOW ${count('LOW')}</span></div>`;
+}
 function findingsPanel() {
   const rows = visibleFindings();
   const f = state.findingFilter;
@@ -58,7 +72,7 @@ function findingsPanel() {
   const label = `${SORT_LABELS[f.sort]}${f.severity === 'ALL' ? '' : ' · ' + f.severity}`;
   const total = state.findings.length;
   const empty = total ? '조건에 맞는 진단 결과가 없습니다.' : '표시할 진단 결과가 없습니다.';
-  return `<section class="findings-panel"><div class="file-bar"><span>⌞　${esc(currentPath)}</span><div class="filter-wrap"><button class="filter-button" id="filter-toggle">필터: ${label}　⌄</button>${filterMenu()}</div></div><div class="table-head"><span>식별자</span><span>심각도</span><span>신뢰도</span><span>메세지</span></div><div class="finding-scroll">${rows.map((finding) => `<button class="finding-row ${state.selectedFinding?.finding_id === finding.finding_id ? 'active' : ''}" data-finding-id="${finding.finding_id}"><strong>${esc(slugOf(finding))}</strong>${severityGauge(finding.severity)}${confidenceBadge(finding.confidence)}<span>${esc(finding.message)}</span></button>`).join('') || `<p class="empty-state">${empty}</p>`}</div></section>`;
+  return `<section class="findings-panel">${findingsSummary()}<div class="file-bar"><span>⌞　${esc(currentPath)}</span><div class="filter-wrap"><button class="filter-button" id="filter-toggle">필터: ${label}　⌄</button>${filterMenu()}</div></div><div class="table-head"><span>식별자</span><span>심각도</span><span>신뢰도</span><span>메세지</span></div><div class="finding-scroll">${rows.map((finding) => `<button class="finding-row ${state.selectedFinding?.finding_id === finding.finding_id ? 'active' : ''}" data-finding-id="${finding.finding_id}"><strong>${esc(slugOf(finding))}</strong>${severityGauge(finding.severity)}${confidenceBadge(finding.confidence)}<span>${esc(finding.message)}</span></button>`).join('') || `<p class="empty-state">${empty}</p>`}</div></section>`;
 }
 function severityBadge(severity) { const value = String(severity || 'MEDIUM').toLowerCase(); const cls = value === 'high' ? 'high' : value === 'low' ? 'low' : 'medium'; return `<span class="badge ${cls}">${value}</span>`; }
 function detailPanel(finding) {
@@ -106,7 +120,7 @@ async function loadPageData(page) { if (page === 'dashboard') await loadProjects
 async function render(page = 'dashboard') { try { await loadPageData(page); const views = { dashboard, guide, history, rules: rulesPage, users: usersPage, languages }; $('#page-root').innerHTML = (views[page] || dashboard)(); $('#page-title').dataset.page = page; document.querySelectorAll('[data-page]').forEach((button) => button.classList.toggle('active', button.dataset.page === page)); bindPageEvents(); } catch (error) { toast(error.message); } }
 function bindPageEvents() {
   $('#project-add')?.addEventListener('click', () => openModal('project-modal'));
-  document.querySelectorAll('.project-item[data-project-id]').forEach((button) => button.addEventListener('click', async () => { const next = state.projects.find((project) => String(project.project_id) === button.dataset.projectId); if (next?.project_id !== state.currentProject?.project_id) { state.currentProject = next; state.selectedFinding = null; } await render('dashboard'); }));
+  document.querySelectorAll('.project-item[data-project-id]').forEach((button) => button.addEventListener('click', async () => { const next = state.projects.find((project) => String(project.project_id) === button.dataset.projectId); if (next?.project_id !== state.currentProject?.project_id) { state.currentProject = next; state.selectedFinding = null; state.treeOpen = true; } else { state.treeOpen = !state.treeOpen; } await render('dashboard'); }));
   document.querySelectorAll('.project-delete').forEach((button) => button.addEventListener('click', async (event) => { event.stopPropagation(); const project = state.projects.find((item) => String(item.project_id) === button.dataset.projectId); if (!project || !confirm(`'${project.name}' 프로젝트를 삭제할까요?\n연결된 진단 실행과 결과도 함께 삭제됩니다.`)) return; try { await api(`/api/projects/${button.dataset.projectId}`, { method: 'DELETE' }); if (String(state.currentProject?.project_id) === button.dataset.projectId) { state.currentProject = null; state.selectedFinding = null; } toast('프로젝트가 삭제되었습니다.'); await render('dashboard'); } catch (error) { toast(error.message); } }));
   $('#run-button')?.addEventListener('click', async () => { if (!state.currentProject) return toast('먼저 프로젝트를 등록하세요.'); try { const run = await api(`/api/projects/${state.currentProject.project_id}/analyze`, { method: 'POST', body: '{}' }); state.selectedFinding = null; toast(`진단이 ${run.status === 'COMPLETED' ? '완료' : '실패'}되었습니다.`); await render('dashboard'); } catch (error) { toast(error.message); } });
   document.querySelectorAll('[data-finding-id]').forEach((button) => button.addEventListener('click', () => openFinding(button.dataset.findingId)));
